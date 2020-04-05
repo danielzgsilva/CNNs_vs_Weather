@@ -77,8 +77,7 @@ class ClassificationTrainer:
                                         transform=self.data_transforms['train'],
                                         target_transform=get_image_label)
 
-       # self.datasets['train'] = ConcatDataset([train_dataset, trainextra_dataset])
-        self.datasets['train'] = train_dataset
+        self.datasets['train'] = ConcatDataset([train_dataset, trainextra_dataset])
 
         self.datasets['val'] = Cityscapes(self.data_path,
                                           split='val',
@@ -158,8 +157,8 @@ class ClassificationTrainer:
         best_model_wts = self.model.state_dict()
         best_acc = 0.0
 
-        print('| Epoch\t | Train Loss\t| Train Acc\t| Valid Loss\t| Valid Seq Acc\t| Valid Dig ' 'Acc\t| Epoch Time |')
-        print('-' * 102)
+        print('| Epoch\t | Train Loss\t| Train Acc\t| Valid Loss\t| Valid Acc\t| Epoch Time |')
+        print('-' * 86)
 
         # Iterate through epochs
         for epoch in range(self.epochs):
