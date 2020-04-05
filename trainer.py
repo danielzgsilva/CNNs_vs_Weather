@@ -33,6 +33,7 @@ class ClassificationTrainer:
 
         if self.model_type == 'inception':
             self.model = inception_v3(pretrained=True, aux_logits=False)
+            set_parameter_requires_grad(self.model, True)
             self.model.fc = self.fc = nn.Linear(2048, len(important_classes))
         elif self.model_type == 'VGG':
             self.model = vgg16_bn(pretrained=True, num_classes=len(important_classes))
@@ -43,6 +44,13 @@ class ClassificationTrainer:
 
         # Loss function and optimizer
         self.criterion = nn.CrossEntropyLoss()
+
+        params_to_update = []
+        for name, param in self.model.named_parameters():
+            if param.requires_grad == True:
+                params_to_update.append(param)
+                print('Updating param {}'.format(name))
+
         self.optimizer = optim.Adam(self.model.parameters(), lr=self.lr)
 
         # self.optimizer = optim.SGD(self.model.parameters(), lr=self.lr, momentum=0.9, weight_decay=0.0005)

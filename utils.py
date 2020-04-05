@@ -74,3 +74,8 @@ def load_model(filepath):
     model.to(device)
 
     return model, optimizer, criterion, epoch, device
+
+def set_parameter_requires_grad(model, feature_extracting):
+        if feature_extracting:
+                    for param in model.parameters():
+                                    param.requires_grad = False
