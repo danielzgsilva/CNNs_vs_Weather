@@ -46,7 +46,7 @@ def get_image_label(poly):
 
     label_num = class_to_num[image_label]
 
-    target = torch.zeros(len(important_classes), dtype=torch.float32)
+    target = torch.zeros(len(important_classes), dtype=torch.LongTensor)
     target[label_num] = 1
     return target
 
