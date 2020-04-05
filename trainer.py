@@ -136,7 +136,7 @@ class ClassificationTrainer:
 
                 # Gets the predictions of the inputs (highest value in the array)
                 _, preds = torch.max(outputs, 1)
-                print(preds.shape)
+
                 # Adjust weights through backprop if we're in training phase
                 if phase == 'train':
                     loss.backward()
@@ -159,7 +159,7 @@ class ClassificationTrainer:
         best_acc = 0.0
 
         print('| Epoch\t | Train Loss\t| Train Acc\t| Valid Loss\t| Valid Seq Acc\t| Valid Dig ' 'Acc\t| Epoch Time |')
-        print('-' * 108)
+        print('-' * 102)
 
         # Iterate through epochs
         for epoch in range(self.epochs):
