@@ -124,7 +124,7 @@ class ClassificationTrainer:
 
             # Zero parameter gradients
             self.optimizer.zero_grad()
-            print(labels.shape)
+
             # Calculate gradients only if we're in the training phase
             with torch.set_grad_enabled(phase == 'train'):
 
@@ -144,8 +144,8 @@ class ClassificationTrainer:
 
             # Document statistics for the batch
             running_loss += loss.item() * images.size(0)
-            running_corrects += torch.sum(preds == labels.data)
-            print(running_corrects)
+            running_corrects += torch.sum(preds == labels.data).item()
+
         # Calculate epoch statistics
         loss = running_loss / self.datasets[phase].__len__()
         acc = running_corrects / self.datasets[phase].__len__()
@@ -159,7 +159,7 @@ class ClassificationTrainer:
         best_acc = 0.0
 
         print('| Epoch\t | Train Loss\t| Train Acc\t| Valid Loss\t| Valid Seq Acc\t| Valid Dig ' 'Acc\t| Epoch Time |')
-        print('-' * 118)
+        print('-' * 108)
 
         # Iterate through epochs
         for epoch in range(self.epochs):
