@@ -46,9 +46,7 @@ def get_image_label(poly):
 
     label_num = class_to_num[image_label]
 
-    target = torch.zeros(len(important_classes), dtype=torch.long)
-    target[label_num] = 1
-    return target
+    return label_num
 
 
 def save_model(path, name, arch, model, epochs, optimizer, criterion):
