@@ -28,11 +28,11 @@ class CityscapesOptions:
         self.parser.add_argument("--height",
                                  type=int,
                                  help="input image height",
-                                 default=64)
+                                 default=256)
         self.parser.add_argument("--width",
                                  type=int,
                                  help="input image width",
-                                 default=128)
+                                 default=512)
 
         self.parser.add_argument("--batch_size",
                                  type=int,

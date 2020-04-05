@@ -32,7 +32,8 @@ class ClassificationTrainer:
         assert self.model_type in ['inception', 'resnet', 'VGG']
 
         if self.model_type == 'inception':
-            self.model = inception_v3(pretrained=True, num_classes=len(important_classes))
+            self.model = inception_v3(pretrained=True, aux_logits=False)
+            self.model.fc = self.fc = nn.Linear(2048, len(important_classes))
         elif self.model_type == 'VGG':
             self.model = vgg16_bn(pretrained=True, num_classes=len(important_classes))
         else:
@@ -53,9 +54,12 @@ class ClassificationTrainer:
               format(self.input_size, self.batch_size, self.epochs, self.lr, self.step, self.criterion, self.optimizer))
 
         # Data transformations to be used during loading of images
-        self.data_transforms = {'train': transforms.Compose([transforms.ToTensor()]),
-                                'val': transforms.Compose([transforms.ToTensor()]),
-                                'test': transforms.Compose([transforms.ToTensor()])}
+        self.data_transforms = {'train': transforms.Compose([transforms.Resize(self.input_size),
+                                                             transforms.ToTensor()]),
+                                'val': transforms.Compose([transforms.Resize(self.input_size),
+                                                           transforms.ToTensor()]),
+                                'test': transforms.Compose([transforms.Resize(self.input_size),
+                                                            transforms.ToTensor()])}
 
         # Creating PyTorch datasets
         self.datasets = dict()
@@ -89,7 +93,7 @@ class ClassificationTrainer:
                                            transform=self.data_transforms['test'],
                                            target_transform=get_image_label)
 
-        self.dataset_lens = [self.datasets[i] for i in ['train', 'val', 'test']]
+        self.dataset_lens = [self.datasets[i].__len__() for i in ['train', 'val', 'test']]
 
         print('Training on:\n'
               '\tTrain files: {}\n\tValidation files: {}\n\tTest files: {}\n' \
@@ -133,7 +137,7 @@ class ClassificationTrainer:
                 _, preds = torch.max(outputs, 1)
 
                 # Adjust weights through backprop if we're in training phase
-                if phase == 'Train':
+                if phase == 'train':
                     loss.backward()
                     self.optimizer.step()
 
@@ -162,10 +166,10 @@ class ClassificationTrainer:
             epoch_start = time.time()
 
             # Training phase
-            train_loss, train_acc = self.run_epoch('Train')
+            train_loss, train_acc = self.run_epoch('train')
 
             # Validation phase
-            val_loss, val_acc = self.run_epoch('Validation')
+            val_loss, val_acc = self.run_epoch('val')
 
             epoch_time = time.time() - epoch_start
 
