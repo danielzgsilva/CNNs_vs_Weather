@@ -77,7 +77,8 @@ class ClassificationTrainer:
                                         transform=self.data_transforms['train'],
                                         target_transform=get_image_label)
 
-        self.datasets['train'] = ConcatDataset([train_dataset, trainextra_dataset])
+       # self.datasets['train'] = ConcatDataset([train_dataset, trainextra_dataset])
+        self.datasets['train'] = train_dataset
 
         self.datasets['val'] = Cityscapes(self.data_path,
                                           split='val',
@@ -123,7 +124,7 @@ class ClassificationTrainer:
 
             # Zero parameter gradients
             self.optimizer.zero_grad()
-
+            print(labels.shape)
             # Calculate gradients only if we're in the training phase
             with torch.set_grad_enabled(phase == 'train'):
 
@@ -135,7 +136,7 @@ class ClassificationTrainer:
 
                 # Gets the predictions of the inputs (highest value in the array)
                 _, preds = torch.max(outputs, 1)
-
+                print(preds.shape)
                 # Adjust weights through backprop if we're in training phase
                 if phase == 'train':
                     loss.backward()
@@ -144,7 +145,7 @@ class ClassificationTrainer:
             # Document statistics for the batch
             running_loss += loss.item() * images.size(0)
             running_corrects += torch.sum(preds == labels.data)
-
+            print(running_corrects)
         # Calculate epoch statistics
         loss = running_loss / self.datasets[phase].__len__()
         acc = running_corrects / self.datasets[phase].__len__()
