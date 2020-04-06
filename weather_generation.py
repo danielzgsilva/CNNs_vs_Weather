@@ -34,4 +34,4 @@ def add_fog(im, D, tFactor, atmLight):
     transform = transforms.Compose([
         transforms.ToTensor()
     ])
-    return transform(foggy).view(1, 2, 0)
+    return transform(foggy).view(3, n, m)
