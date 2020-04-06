@@ -142,7 +142,7 @@ class ClassificationTrainer:
                 # Calculate the loss of the batch
                 loss = self.criterion(outputs, labels)
 
-                # Gets the predictions of the inputs (highest value in the array)
+                # Gets the predictions of the outputs (highest value in the array)
                 _, preds = torch.max(outputs, 1)
 
                 # Adjust weights through backprop if we're in training phase

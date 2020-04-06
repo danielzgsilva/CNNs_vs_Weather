@@ -76,7 +76,7 @@ class Tester:
                     # Calculate the loss of the batch
                     loss = self.criterion(outputs, labels)
 
-                    # Gets the predictions of the inputs (highest value in the array)
+                    # Gets the predictions of the outputs (highest value in the array)
                     _, preds = torch.max(outputs, 1)
 
                 # Document statistics for the batch
@@ -88,7 +88,7 @@ class Tester:
             loss = running_loss / self.num_testing_files
 
             # Print results
-            print("| {}\t | {:.4f}\t| {:.4f}\t|".format(perturb, loss, acc,))
+            print("| {}\t| {:.4f}\t| {:.4f}\t|".format(perturb, loss, acc))
 
 if __name__ == "__main__":
     trainer = Tester(opts)
