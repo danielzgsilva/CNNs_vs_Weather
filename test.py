@@ -4,7 +4,7 @@ from torchvision import transforms
 
 import os
 from options import TestingOptions
-from utils import load_model, important_classes, get_image_label
+from utils import load_model, get_image_label
 from datasets.cityscapes import Cityscapes
 
 options = TestingOptions()

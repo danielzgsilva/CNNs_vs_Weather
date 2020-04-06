@@ -74,9 +74,9 @@ class TestingOptions:
                                  default=os.path.join(file_dir, 'cityscapes'))
 
         self.parser.add_argument("--model_path",
-                                 nargs="+",
                                  type=str,
-                                 help="path to the folder where your models are stored")
+                                 help="directory where models are saved in",
+                                 default=os.path.join(file_dir, "models"))
 
         self.parser.add_argument("--model_name",
                                  type=str,
