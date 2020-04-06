@@ -21,9 +21,9 @@ def add_fog(im, D, tFactor, atmLight):
     foggy = np.copy(im)
 
     # Add fog
-    n, m = foggy.shape[1:]
-    for i in range(n):
-        for j in range(m):
+    c, h, w = foggy.shape[1:]
+    for i in range(h):
+        for j in range(w):
             # Compute transmission
             t = special.expit(-tFactor / D[i, j])
 
@@ -34,4 +34,4 @@ def add_fog(im, D, tFactor, atmLight):
     transform = transforms.Compose([
         transforms.ToTensor()
     ])
-    return transform(foggy).view(3, n, m)
+    return transform(foggy).reshape(c, h, w)
