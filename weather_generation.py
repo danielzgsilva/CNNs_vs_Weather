@@ -16,7 +16,7 @@ def add_fog(im, D, tFactor, atmLight):
     """
     tFactor *= 100
 
-    D = D.astype(np.float64)
+    D = D.astype(np.float128)
     im = im.numpy()
     foggy = np.copy(im)
 
@@ -32,7 +32,6 @@ def add_fog(im, D, tFactor, atmLight):
 
     # Return foggy image
     transform = transforms.Compose([
-        transforms.ToPILImage(),
         transforms.ToTensor()
     ])
-    return transform(foggy)
+    return transform(foggy.astype(np.uint8))
