@@ -18,7 +18,8 @@ def add_fog(im, D, tFactor, atmLight):
 
     im = im.numpy()
     foggy = np.copy(im)
-    print(D.shape)
+
+    print(tFactor)
     # Add fog
     n, m = foggy.shape[1:]
     for i in range(n):
