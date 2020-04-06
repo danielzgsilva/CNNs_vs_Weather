@@ -191,7 +191,6 @@ class Cityscapes(VisionDataset):
             tFactor = np.random.uniform(0.05, 0.15)
             atmLight = np.random.uniform(0.6, 1.01)
             image = add_fog(image, disparity, tFactor, atmLight)
-            print(image.shape)
 
         return image, target
 
