@@ -7,9 +7,10 @@ from torchvision.datasets.utils import extract_archive, verify_str_arg, iterable
 from torchvision.datasets.vision import VisionDataset
 from PIL import Image
 
-# Torch dataset for Cityscapes dataset obtained from here:
-# github.com/pytorch/vision/blob/master/torchvision/datasets/cityscapes.py
-# Modified to allow for returning the most common class in an image as groundtruth
+import cv2 as cv
+import numpy as np
+
+from weather_generation import add_fog
 
 class Cityscapes(VisionDataset):
     """`Cityscapes <http://www.cityscapes-dataset.com/>`_ Dataset.
@@ -27,52 +28,54 @@ class Cityscapes(VisionDataset):
             target and transforms it.
         transforms (callable, optional): A function/transform that takes input sample and its target as entry
             and returns a transformed version.
+        perturbation (string, optional) ; String that defines what perturbation, if any, to apply to images
     """
 
+    # Based on https://github.com/mcordts/cityscapesScripts
+    CityscapesClass = namedtuple('CityscapesClass', ['name', 'id', 'train_id', 'category', 'category_id',
+                                                     'has_instances', 'ignore_in_eval', 'color'])
+
+    classes = [
+        CityscapesClass('unlabeled', 0, 255, 'void', 0, False, True, (0, 0, 0)),
+        CityscapesClass('ego vehicle', 1, 255, 'void', 0, False, True, (0, 0, 0)),
+        CityscapesClass('rectification border', 2, 255, 'void', 0, False, True, (0, 0, 0)),
+        CityscapesClass('out of roi', 3, 255, 'void', 0, False, True, (0, 0, 0)),
+        CityscapesClass('static', 4, 255, 'void', 0, False, True, (0, 0, 0)),
+        CityscapesClass('dynamic', 5, 255, 'void', 0, False, True, (111, 74, 0)),
+        CityscapesClass('ground', 6, 255, 'void', 0, False, True, (81, 0, 81)),
+        CityscapesClass('road', 7, 0, 'flat', 1, False, False, (128, 64, 128)),
+        CityscapesClass('sidewalk', 8, 1, 'flat', 1, False, False, (244, 35, 232)),
+        CityscapesClass('parking', 9, 255, 'flat', 1, False, True, (250, 170, 160)),
+        CityscapesClass('rail track', 10, 255, 'flat', 1, False, True, (230, 150, 140)),
+        CityscapesClass('building', 11, 2, 'construction', 2, False, False, (70, 70, 70)),
+        CityscapesClass('wall', 12, 3, 'construction', 2, False, False, (102, 102, 156)),
+        CityscapesClass('fence', 13, 4, 'construction', 2, False, False, (190, 153, 153)),
+        CityscapesClass('guard rail', 14, 255, 'construction', 2, False, True, (180, 165, 180)),
+        CityscapesClass('bridge', 15, 255, 'construction', 2, False, True, (150, 100, 100)),
+        CityscapesClass('tunnel', 16, 255, 'construction', 2, False, True, (150, 120, 90)),
+        CityscapesClass('pole', 17, 5, 'object', 3, False, False, (153, 153, 153)),
+        CityscapesClass('polegroup', 18, 255, 'object', 3, False, True, (153, 153, 153)),
+        CityscapesClass('traffic light', 19, 6, 'object', 3, False, False, (250, 170, 30)),
+        CityscapesClass('traffic sign', 20, 7, 'object', 3, False, False, (220, 220, 0)),
+        CityscapesClass('vegetation', 21, 8, 'nature', 4, False, False, (107, 142, 35)),
+        CityscapesClass('terrain', 22, 9, 'nature', 4, False, False, (152, 251, 152)),
+        CityscapesClass('sky', 23, 10, 'sky', 5, False, False, (70, 130, 180)),
+        CityscapesClass('person', 24, 11, 'human', 6, True, False, (220, 20, 60)),
+        CityscapesClass('rider', 25, 12, 'human', 6, True, False, (255, 0, 0)),
+        CityscapesClass('car', 26, 13, 'vehicle', 7, True, False, (0, 0, 142)),
+        CityscapesClass('truck', 27, 14, 'vehicle', 7, True, False, (0, 0, 70)),
+        CityscapesClass('bus', 28, 15, 'vehicle', 7, True, False, (0, 60, 100)),
+        CityscapesClass('caravan', 29, 255, 'vehicle', 7, True, True, (0, 0, 90)),
+        CityscapesClass('trailer', 30, 255, 'vehicle', 7, True, True, (0, 0, 110)),
+        CityscapesClass('train', 31, 16, 'vehicle', 7, True, False, (0, 80, 100)),
+        CityscapesClass('motorcycle', 32, 17, 'vehicle', 7, True, False, (0, 0, 230)),
+        CityscapesClass('bicycle', 33, 18, 'vehicle', 7, True, False, (119, 11, 32)),
+        CityscapesClass('license plate', -1, -1, 'vehicle', 7, False, True, (0, 0, 142)),
+    ]
+
     def __init__(self, root, split='train', mode='fine', target_type='instance',
-                 transform=None, target_transform=None, transforms=None):
+                 transform=None, target_transform=None, transforms=None, perturbation='none'):
         super(Cityscapes, self).__init__(root, transforms, transform, target_transform)
-        CityscapesClass = namedtuple('CityscapesClass', ['name', 'id', 'train_id', 'category', 'category_id',
-                                                         'has_instances', 'ignore_in_eval', 'color'])
-
-        self.classes = [
-            CityscapesClass('unlabeled', 0, 255, 'void', 0, False, True, (0, 0, 0)),
-            CityscapesClass('ego vehicle', 1, 255, 'void', 0, False, True, (0, 0, 0)),
-            CityscapesClass('rectification border', 2, 255, 'void', 0, False, True, (0, 0, 0)),
-            CityscapesClass('out of roi', 3, 255, 'void', 0, False, True, (0, 0, 0)),
-            CityscapesClass('static', 4, 255, 'void', 0, False, True, (0, 0, 0)),
-            CityscapesClass('dynamic', 5, 255, 'void', 0, False, True, (111, 74, 0)),
-            CityscapesClass('ground', 6, 255, 'void', 0, False, True, (81, 0, 81)),
-            CityscapesClass('road', 7, 0, 'flat', 1, False, False, (128, 64, 128)),
-            CityscapesClass('sidewalk', 8, 1, 'flat', 1, False, False, (244, 35, 232)),
-            CityscapesClass('parking', 9, 255, 'flat', 1, False, True, (250, 170, 160)),
-            CityscapesClass('rail track', 10, 255, 'flat', 1, False, True, (230, 150, 140)),
-            CityscapesClass('building', 11, 2, 'construction', 2, False, False, (70, 70, 70)),
-            CityscapesClass('wall', 12, 3, 'construction', 2, False, False, (102, 102, 156)),
-            CityscapesClass('fence', 13, 4, 'construction', 2, False, False, (190, 153, 153)),
-            CityscapesClass('guard rail', 14, 255, 'construction', 2, False, True, (180, 165, 180)),
-            CityscapesClass('bridge', 15, 255, 'construction', 2, False, True, (150, 100, 100)),
-            CityscapesClass('tunnel', 16, 255, 'construction', 2, False, True, (150, 120, 90)),
-            CityscapesClass('pole', 17, 5, 'object', 3, False, False, (153, 153, 153)),
-            CityscapesClass('polegroup', 18, 255, 'object', 3, False, True, (153, 153, 153)),
-            CityscapesClass('traffic light', 19, 6, 'object', 3, False, False, (250, 170, 30)),
-            CityscapesClass('traffic sign', 20, 7, 'object', 3, False, False, (220, 220, 0)),
-            CityscapesClass('vegetation', 21, 8, 'nature', 4, False, False, (107, 142, 35)),
-            CityscapesClass('terrain', 22, 9, 'nature', 4, False, False, (152, 251, 152)),
-            CityscapesClass('sky', 23, 10, 'sky', 5, False, False, (70, 130, 180)),
-            CityscapesClass('person', 24, 11, 'human', 6, True, False, (220, 20, 60)),
-            CityscapesClass('rider', 25, 12, 'human', 6, True, False, (255, 0, 0)),
-            CityscapesClass('car', 26, 13, 'vehicle', 7, True, False, (0, 0, 142)),
-            CityscapesClass('truck', 27, 14, 'vehicle', 7, True, False, (0, 0, 70)),
-            CityscapesClass('bus', 28, 15, 'vehicle', 7, True, False, (0, 60, 100)),
-            CityscapesClass('caravan', 29, 255, 'vehicle', 7, True, True, (0, 0, 90)),
-            CityscapesClass('trailer', 30, 255, 'vehicle', 7, True, True, (0, 0, 110)),
-            CityscapesClass('train', 31, 16, 'vehicle', 7, True, False, (0, 80, 100)),
-            CityscapesClass('motorcycle', 32, 17, 'vehicle', 7, True, False, (0, 0, 230)),
-            CityscapesClass('bicycle', 33, 18, 'vehicle', 7, True, False, (119, 11, 32)),
-            CityscapesClass('license plate', -1, -1, 'vehicle', 7, False, True, (0, 0, 142)),
-        ]
-
         self.mode = 'gtFine' if mode == 'fine' else 'gtCoarse'
         self.images_dir = os.path.join(self.root, 'leftImg8bit', split)
         self.targets_dir = os.path.join(self.root, self.mode, split)
@@ -80,6 +83,13 @@ class Cityscapes(VisionDataset):
         self.split = split
         self.images = []
         self.targets = []
+        self.perturbation = None
+
+        if perturbation != 'none':
+            assert perturbation in ['fog']
+            self.perturbation = perturbation
+            self.depth_dir = os.path.join(self.root, 'disparity', split)
+            self.depth_maps = []
 
         verify_str_arg(mode, "mode", ("fine", "coarse"))
         if mode == "fine":
@@ -119,6 +129,10 @@ class Cityscapes(VisionDataset):
         for city in os.listdir(self.images_dir):
             img_dir = os.path.join(self.images_dir, city)
             target_dir = os.path.join(self.targets_dir, city)
+
+            if perturbation != 'none':
+                depth_dir = os.path.join(self.depth_dir, city)
+
             for file_name in os.listdir(img_dir):
                 target_types = []
                 for t in self.target_type:
@@ -128,6 +142,12 @@ class Cityscapes(VisionDataset):
 
                 self.images.append(os.path.join(img_dir, file_name))
                 self.targets.append(target_types)
+
+                # Add depth files if needed
+                if perturbation != 'none':
+                    depth_map = file_name.replace('leftImg8bit', 'disparity')
+                    self.depth_maps.append(os.path.join(depth_dir, depth_map))
+
 
     def __getitem__(self, index):
         """
@@ -153,6 +173,23 @@ class Cityscapes(VisionDataset):
 
         if self.transforms is not None:
             image, target = self.transforms(image, target)
+
+        if self.perturbation == 'fog':
+            # Load in disparity map
+            disparity = cv.imread(self.depth_maps[index], cv.IMREAD_UNCHANGED).astype(np.float32)
+            disparity[disparity > 0] = (disparity[disparity > 0] - 1) / 256
+
+            # Assign the median to the zero elements, which are invalid measurements
+            m = np.median(disparity[disparity > 0])
+            disparity[disparity == 0] = m
+
+            # Smoothen depth map some
+            disparity = cv.medianBlur(disparity, 5)
+
+            # Add fog to image
+            tFactor = np.random.uniform(0.05, 0.15, 7)
+            atmLight = np.random.uniform(0.6, 1.01, 5)
+            image = add_fog(image, disparity, tFactor, atmLight)
 
         return image, target
 
