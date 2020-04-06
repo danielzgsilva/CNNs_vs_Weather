@@ -47,7 +47,7 @@ class Tester:
                          for i in self.perturbations}
 
         self.num_testing_files = self.datasets['none'].__len__()
-        print('Training on {} test files'.format(self.num_testing_files))
+        print('Testing on {} test files'.format(self.num_testing_files))
 
         # Creating PyTorch dataloaders
         self.dataloaders = {i: DataLoader(self.datasets[i], batch_size=self.batch_size, shuffle=True,
@@ -55,7 +55,7 @@ class Tester:
 
     def test(self):
         print('| Perturbation\t| Loss\t| Accuracy\t|')
-        print('-' * 35)
+        print('-' * 42)
 
         # Test model on each type of perturbation
         for perturb in self.perturbations:
