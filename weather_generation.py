@@ -21,7 +21,7 @@ def add_fog(im, D, tFactor, atmLight):
     foggy = np.copy(im)
 
     # Add fog
-    c, h, w = foggy.shape[1:]
+    c, h, w = foggy.shape
     for i in range(h):
         for j in range(w):
             # Compute transmission
