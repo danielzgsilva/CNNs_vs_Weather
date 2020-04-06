@@ -12,6 +12,7 @@ import numpy as np
 
 from weather_generation import add_fog
 
+
 class Cityscapes(VisionDataset):
     """`Cityscapes <http://www.cityscapes-dataset.com/>`_ Dataset.
     Args:
@@ -148,7 +149,6 @@ class Cityscapes(VisionDataset):
                     depth_map = file_name.replace('leftImg8bit', 'disparity')
                     self.depth_maps.append(os.path.join(depth_dir, depth_map))
 
-
     def __getitem__(self, index):
         """
         Args:
@@ -176,9 +176,8 @@ class Cityscapes(VisionDataset):
 
         if self.perturbation == 'fog':
             # Load in disparity map
-            disparity = cv.imread(self.depth_maps[index], cv.IMREAD_UNCHANGED).astype(np.float32)
-            print(image.shape)
-            print(disparity.shape)
+            n, m = image.shape[1:]
+            disparity = cv.resize(cv.imread(self.depth_maps[index], cv.IMREAD_UNCHANGED).astype(np.float32), (n, m))
             disparity[disparity > 0] = (disparity[disparity > 0] - 1) / 256
 
             # Assign the median to the zero elements, which are invalid measurements

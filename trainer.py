@@ -166,7 +166,7 @@ class ClassificationTrainer:
         best_model_wts = self.model.state_dict()
         best_acc = 0.0
 
-        print('| Epoch\t | Train Loss\t| Train Acc\t| Valid Loss\t| Valid Acc\t| Epoch Time |')
+        print('| Epoch\t | Train Loss\t| Train Acc\t| Valid Loss\t| Valid Acc\t| Epoch Time  |')
         print('-' * 86)
 
         # Iterate through epochs
@@ -183,7 +183,7 @@ class ClassificationTrainer:
             epoch_time = time.time() - epoch_start
 
             # Print statistics after the validation phase
-            print("| {}\t | {:.4f}\t| {:.4f}\t| {:.4f}\t| {:.4f}\t| {:.0f}m {:.0f}s     |"
+            print("| {}\t | {:.4f}\t| {:.4f}\t| {:.4f}\t| {:.4f}\t| {:2f.0f}m {:2f.0f}s     |"
                   .format(epoch + 1, train_loss, train_acc, val_loss, val_acc,
                           epoch_time // 60, epoch_time % 60))
 
