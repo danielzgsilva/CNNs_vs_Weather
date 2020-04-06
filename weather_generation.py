@@ -23,10 +23,9 @@ def add_fog(im, D, tFactor, atmLight):
     for i in range(n):
         for j in range(m):
             # Compute transmission
-            print(D[i, j])
-            t = np.exp(-tFactor / D[i, j].item())
+            t = np.exp(-tFactor / D[i, j])
+
             # Set intensity of fog
-            print(foggy[:, i, j])
             foggy[:, i, j] = t * foggy[:, i, j] + ((1 - t) * atmLight)
 
     # Return foggy image
