@@ -90,7 +90,7 @@ class Tester:
             # Print results
             print("| {:<13} | {:.4f}\t| {:.4f}\t|".format(perturb, loss, acc))
 
-        print('-' * 47)
+        print('-' * 49)
 
 if __name__ == "__main__":
     trainer = Tester(opts)
