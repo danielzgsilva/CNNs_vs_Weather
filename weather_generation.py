@@ -4,7 +4,7 @@ import os
 from PIL import Image
 
 import torch
-
+from torchvision import transforms
 
 def add_fog(im, D, tFactor, atmLight):
     """
@@ -16,6 +16,7 @@ def add_fog(im, D, tFactor, atmLight):
     """
     tFactor *= 100
 
+    D = D.astype(np.float64)
     im = im.numpy()
     foggy = np.copy(im)
 
@@ -30,4 +31,8 @@ def add_fog(im, D, tFactor, atmLight):
             foggy[:, i, j] = t * foggy[:, i, j] + ((1 - t) * atmLight)
 
     # Return foggy image
-    return torch.from_numpy(foggy)
+    transform = transforms.Compose([
+        transforms.ToPILImage(),
+        transforms.ToTensor()
+    ])
+    return transform(foggy)
