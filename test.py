@@ -54,7 +54,7 @@ class Tester:
                                           num_workers=self.num_workers) for i in self.perturbations}
 
     def test(self):
-        print('| Perturbation  | Loss \t | Accuracy\t|')
+        print('| Perturbation  | Loss         | Accuracy     |')
         print('-' * 41)
 
         # Test model on each type of perturbation
