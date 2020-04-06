@@ -177,7 +177,7 @@ class Cityscapes(VisionDataset):
         if self.perturbation == 'fog':
             # Load in disparity map
             n, m = image.shape[1:]
-            disparity = cv.resize(cv.imread(self.depth_maps[index], cv.IMREAD_UNCHANGED).astype(np.float128), (m, n))
+            disparity = cv.resize(cv.imread(self.depth_maps[index], cv.IMREAD_UNCHANGED).astype(np.float64), (m, n))
             disparity[disparity > 0] = (disparity[disparity > 0] - 1) / 256
 
             # Assign the median to the zero elements, which are invalid measurements
