@@ -34,7 +34,7 @@ class Tester:
                                               transforms.ToTensor()])
 
         # List of perturbations we'll test the model on
-        self.perturbations = ['none', 'fog']
+        self.perturbations = ['fog']
 
         # Dataset and dataloader dictionaries indexed by the type of perturbation it applies to images
         self.datasets = {i: Cityscapes(self.data_path,
