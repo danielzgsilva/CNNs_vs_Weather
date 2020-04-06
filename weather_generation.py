@@ -16,8 +16,9 @@ def add_fog(im, D, tFactor, atmLight):
     """
     tFactor *= 100
 
-    foggy = im.clone()
-    print(D.shape)
+    im = im.numpy()
+    foggy = np.copy(im)
+
     # Add fog
     n, m = foggy.shape[1:]
     for i in range(n):
@@ -29,4 +30,4 @@ def add_fog(im, D, tFactor, atmLight):
             foggy[:, i, j] = t * foggy[:, i, j] + ((1 - t) * atmLight)
 
     # Return foggy image
-    return foggy
+    return torch.from_numpy(foggy)
