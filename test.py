@@ -38,8 +38,8 @@ class Tester:
 
         # Dataset and dataloader dictionaries indexed by the type of perturbation it applies to images
         self.datasets = {i: Cityscapes(self.data_path,
-                                       split='test',
-                                       mode='fine',
+                                       split='val',
+                                       mode='coarse',
                                        target_type=['polygon'],
                                        transform=self.transforms,
                                        target_transform=get_image_label,
