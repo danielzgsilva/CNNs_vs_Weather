@@ -2,7 +2,7 @@ import numpy as np
 import cv2 as cv
 import os
 from PIL import Image
-import scipy
+from scipy import special
 
 import torch
 from torchvision import transforms
@@ -25,7 +25,7 @@ def add_fog(im, D, tFactor, atmLight):
     for i in range(n):
         for j in range(m):
             # Compute transmission
-            t = scipy.special.expit(-tFactor / D[i, j])
+            t = special.expit(-tFactor / D[i, j])
 
             # Set intensity of fog
             foggy[:, i, j] = t * foggy[:, i, j] + ((1 - t) * atmLight)
