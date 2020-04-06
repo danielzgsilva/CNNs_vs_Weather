@@ -188,8 +188,8 @@ class Cityscapes(VisionDataset):
             disparity = cv.medianBlur(disparity, 5)
 
             # Add fog to image
-            tFactor = np.random.uniform(0.05, 0.15, 7)
-            atmLight = np.random.uniform(0.6, 1.01, 5)
+            tFactor = np.random.uniform(0.05, 0.15)
+            atmLight = np.random.uniform(0.6, 1.01)
             image = add_fog(image, disparity, tFactor, atmLight)
 
         return image, target
