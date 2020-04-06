@@ -83,6 +83,7 @@ class Tester:
                 running_loss += loss.item() * images.size(0)
                 running_corrects += torch.sum(preds == labels.data).item()
 
+            print(running_corrects)
             # Document statistics
             acc = running_corrects / self.num_testing_files
             loss = running_loss / self.num_testing_files
