@@ -54,8 +54,8 @@ class Tester:
                                           num_workers=self.num_workers) for i in self.perturbations}
 
     def test(self):
-        print('| Perturbation  | Loss         | Accuracy     |')
-        print('-' * 41)
+        print('| Perturbation  | Loss          | Accuracy      |')
+        print('-' * 49)
 
         # Test model on each type of perturbation
         for perturb in self.perturbations:
@@ -88,7 +88,9 @@ class Tester:
             loss = running_loss / self.num_testing_files
 
             # Print results
-            print("|{:<15}| {:.4f}\t| {:.4f}\t|".format(perturb, loss, acc))
+            print("| {:<13} | {:.4f}\t| {:.4f}\t|".format(perturb, loss, acc))
+
+        print('-' * 47)
 
 if __name__ == "__main__":
     trainer = Tester(opts)
