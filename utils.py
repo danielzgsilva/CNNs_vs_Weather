@@ -49,11 +49,11 @@ def get_image_label(poly):
     return label_num
 
 
-def save_model(path, name, arch, model, epochs, optimizer, criterion):
+def save_model(path, name, model, epochs, optimizer, criterion):
     model_path = os.path.join(path, name) + '.tar'
 
     torch.save({
-        'model': arch,
+        'model': model,
         'epoch': epochs,
         'model_state_dict': model.state_dict(),
         'optimizer': optimizer,

@@ -51,7 +51,7 @@ class ClassificationTrainer:
                 params_to_update.append(param)
                 print('Updating param {}'.format(name))
 
-        self.optimizer = optim.Adam(self.model.parameters(), lr=self.lr)
+        self.optimizer = optim.Adam(params_to_update, lr=self.lr)
 
         # self.optimizer = optim.SGD(self.model.parameters(), lr=self.lr, momentum=0.9, weight_decay=0.0005)
         # self.scheduler = StepLR(self.optimizer, step_size=self.step, gamma=0.9)
@@ -193,7 +193,7 @@ class ClassificationTrainer:
 
         total_time = time.time() - start
 
-        print('-' * 118)
+        print('-' * 86)
         print('Training complete in {:.0f}m {:.0f}s'.format(total_time // 60, total_time % 60))
         print('Best validation accuracy: {:.4f}'.format(best_acc))
 
