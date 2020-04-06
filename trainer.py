@@ -1,3 +1,4 @@
+import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader, ConcatDataset
 from torch import optim
@@ -6,7 +7,7 @@ from torchvision import transforms
 from torchvision.datasets import Cityscapes
 from torchvision.models import inception_v3, resnet34, vgg16_bn
 
-from utils import *
+from utils import save_model, set_parameter_requires_grad, important_classes, get_image_label
 
 import time
 
@@ -97,7 +98,7 @@ class ClassificationTrainer:
         self.datasets['test'] = Cityscapes(self.data_path,
                                            split='test',
                                            mode='fine',
-                                           target_type=["instance", "semantic", "polygon", "color"],
+                                           target_type=["polygon"],
                                            transform=self.data_transforms['test'],
                                            target_transform=get_image_label)
 

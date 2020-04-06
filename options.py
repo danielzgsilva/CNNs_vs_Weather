@@ -4,7 +4,7 @@ import argparse
 file_dir = os.path.dirname(__file__)
 
 
-class CityscapesOptions:
+class TrainingOptions:
     def __init__(self):
         self.parser = argparse.ArgumentParser(description="Cityscape training options")
 
@@ -59,6 +59,47 @@ class CityscapesOptions:
                                  type=str,
                                  help="model to load")
 
+    def parse(self):
+        self.options = self.parser.parse_args()
+        return self.options
+
+
+class TestingOptions:
+    def __init__(self):
+        self.parser = argparse.ArgumentParser(description="Cityscape testing options")
+
+        self.parser.add_argument("--data_path",
+                                 type=str,
+                                 help="path to the training data",
+                                 default=os.path.join(file_dir, 'cityscapes'))
+
+        self.parser.add_argument("--model_path",
+                                 nargs="+",
+                                 type=str,
+                                 help="path to the folder where your models are stored")
+
+        self.parser.add_argument("--model_name",
+                                 type=str,
+                                 help="name of the model file")
+
+        self.parser.add_argument("--height",
+                                 type=int,
+                                 help="input image height",
+                                 default=256)
+        self.parser.add_argument("--width",
+                                 type=int,
+                                 help="input image width",
+                                 default=512)
+
+        self.parser.add_argument("--batch_size",
+                                 type=int,
+                                 help="batch size",
+                                 default=32)
+
+        self.parser.add_argument("--num_workers",
+                                 type=int,
+                                 help="number of dataloader workers",
+                                 default=12)
     def parse(self):
         self.options = self.parser.parse_args()
         return self.options

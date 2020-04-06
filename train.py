@@ -1,7 +1,7 @@
-from options import CityscapesOptions
+from options import TrainingOptions
 from trainer import ClassificationTrainer
 
-options = CityscapesOptions()
+options = TrainingOptions()
 opts = options.parse()
 
 if __name__ == "__main__":
