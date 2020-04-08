@@ -4,7 +4,7 @@ from torchvision import transforms
 
 import os
 from options import TestingOptions
-from utils import load_model, get_image_label
+from utils import load_model, get_image_labels
 from datasets.cityscapes import Cityscapes
 
 options = TestingOptions()
@@ -42,7 +42,7 @@ class Tester:
                                        mode='coarse',
                                        target_type=['polygon'],
                                        transform=self.transforms,
-                                       target_transform=get_image_label,
+                                       target_transform=get_image_labels,
                                        perturbation=i)
                          for i in self.perturbations}
 

@@ -2,9 +2,7 @@ import torch
 import os
 
 
-important_classes = ['unlabeled',
-                     'ground',
-                     'road',
+important_classes = ['road',
                      'sidewalk',
                      'parking',
                      'rail track',
@@ -27,26 +25,18 @@ important_classes = ['unlabeled',
 class_to_num = {label: i for i, label in enumerate(important_classes)}
 
 
-def get_image_label(poly):
+def get_image_labels(poly):
     objects = poly['objects']
-
-    image_label = 'unlabeled'
-    max_count = 0
-    label_counts = {}
+    target = torch.zeros(len(important_classes))
 
     for obj in objects:
         label = obj['label']
 
         if label in important_classes:
-            label_counts[label] = label_counts.get(label, 0) + 1
+            idx = class_to_num[label]
+            target[idx] = 1
 
-            if label_counts[label] > max_count:
-                max_count = label_counts[label]
-                image_label = label
-
-    label_num = class_to_num[image_label]
-
-    return label_num
+    return target
 
 
 def save_model(path, name, model, epochs, optimizer, criterion):
@@ -75,7 +65,6 @@ def load_model(filepath):
 
     return model, optimizer, criterion, epoch, device
 
-def set_parameter_requires_grad(model, feature_extracting):
-        if feature_extracting:
-                    for param in model.parameters():
-                                    param.requires_grad = False
+def set_requires_grad(model, requires_grad):
+    for param in model.parameters():
+        param.requires_grad = requires_grad

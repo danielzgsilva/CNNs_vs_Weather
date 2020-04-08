@@ -7,10 +7,10 @@ from torchvision import transforms
 from torchvision.datasets import Cityscapes
 from torchvision.models import inception_v3, resnet34, vgg16_bn
 
-from utils import save_model, set_parameter_requires_grad, important_classes, get_image_label
+from utils import save_model, set_requires_grad, important_classes, get_image_labels
 
 import time
-
+import os
 
 class ClassificationTrainer:
     def __init__(self, args):
@@ -34,23 +34,29 @@ class ClassificationTrainer:
 
         if self.model_type == 'inception':
             self.model = inception_v3(pretrained=True, aux_logits=False)
-            set_parameter_requires_grad(self.model, True)
+            set_requires_grad(self.model, False)
             self.model.fc = self.fc = nn.Linear(2048, len(important_classes))
+
         elif self.model_type == 'VGG':
-            self.model = vgg16_bn(pretrained=True, num_classes=len(important_classes))
+            self.model = vgg16_bn(pretrained=True)
+            set_requires_grad(self.model, False)
+            self.model.fc = self.fc = nn.Linear(4096, len(important_classes))
+
         else:
-            self.model = resnet34(pretrained=True, num_classes=len(important_classes))
+            self.model = resnet34(pretrained=True)
+            set_requires_grad(self.model, False)
+            self.model.fc = self.fc = nn.Linear(512, len(important_classes))
 
         self.model.to(self.device)
 
         # Loss function and optimizer
-        self.criterion = nn.CrossEntropyLoss()
+        self.criterion = nn.BCEWithLogitsLoss()
 
         params_to_update = []
         for name, param in self.model.named_parameters():
             if param.requires_grad == True:
                 params_to_update.append(param)
-                print('Updating param {}'.format(name))
+                print('Training param {}'.format(name))
 
         self.optimizer = optim.Adam(params_to_update, lr=self.lr)
 
@@ -58,9 +64,9 @@ class ClassificationTrainer:
         # self.scheduler = StepLR(self.optimizer, step_size=self.step, gamma=0.9)
 
         print('Training options:\n'
-              '\tInput size: {}\n\tBatch size: {}\n\tEpochs: {}\n\t'
-              'Learning rate: {}\n\tStep Size: {}\n\tLoss: {}\n\tOptimizer: {}\n'. \
-              format(self.input_size, self.batch_size, self.epochs, self.lr, self.step, self.criterion, self.optimizer))
+              '\tModel: {}\n\tInput size: {}\n\tBatch size: {}\n\tEpochs: {}\n\t'
+              'Learning rate: {}\n\tStep Size: {}\n'.
+              format(self.model_type.capitalize(), self.input_size, self.batch_size, self.epochs, self.lr, self.step))
 
         # Data transformations to be used during loading of images
         self.data_transforms = {'train': transforms.Compose([transforms.Resize(self.input_size),
@@ -77,14 +83,14 @@ class ClassificationTrainer:
                                    mode='fine',
                                    target_type=["polygon"],
                                    transform=self.data_transforms['train'],
-                                   target_transform=get_image_label)
+                                   target_transform=get_image_labels)
 
         trainextra_dataset = Cityscapes(self.data_path,
                                         split='train_extra',
                                         mode='coarse',
                                         target_type=["polygon"],
                                         transform=self.data_transforms['train'],
-                                        target_transform=get_image_label)
+                                        target_transform=get_image_labels)
 
         self.datasets['train'] = ConcatDataset([train_dataset, trainextra_dataset])
 
@@ -93,14 +99,14 @@ class ClassificationTrainer:
                                           mode='coarse',
                                           target_type=['polygon'],
                                           transform=self.data_transforms['val'],
-                                          target_transform=get_image_label)
+                                          target_transform=get_image_labels)
 
         self.datasets['test'] = Cityscapes(self.data_path,
                                            split='test',
                                            mode='fine',
                                            target_type=["polygon"],
                                            transform=self.data_transforms['test'],
-                                           target_transform=get_image_label)
+                                           target_transform=get_image_labels)
 
         self.dataset_lens = [self.datasets[i].__len__() for i in ['train', 'val', 'test']]
 
@@ -125,7 +131,6 @@ class ClassificationTrainer:
 
         # Looping through batches
         for i, (images, labels) in enumerate(self.dataloaders[phase]):
-
             # Ensure we're doing this calculation on our GPU if possible
             images = images.to(self.device)
             labels = labels.to(self.device)
@@ -142,8 +147,8 @@ class ClassificationTrainer:
                 # Calculate the loss of the batch
                 loss = self.criterion(outputs, labels)
 
-                # Gets the predictions of the outputs (highest value in the array)
-                _, preds = torch.max(outputs, 1)
+                # Gets the predictions of the outputs
+                preds = (torch.sigmoid(outputs) > 0.5).int()
 
                 # Adjust weights through backprop if we're in training phase
                 if phase == 'train':
@@ -166,7 +171,7 @@ class ClassificationTrainer:
         best_model_wts = self.model.state_dict()
         best_acc = 0.0
 
-        print('| Epoch\t | Train Loss\t| Train Acc\t| Valid Loss\t| Valid Acc\t| Epoch Time  |')
+        print('| Epoch\t | Train Loss\t| Train Acc\t| Valid Loss\t| Valid Acc\t| Epoch Time |')
         print('-' * 86)
 
         # Iterate through epochs
@@ -183,7 +188,7 @@ class ClassificationTrainer:
             epoch_time = time.time() - epoch_start
 
             # Print statistics after the validation phase
-            print("| {}\t | {:.4f}\t| {:.4f}\t| {:.4f}\t| {:.4f}\t| {:2f.0f}m {:2f.0f}s     |"
+            print("| {}\t | {:.4f}\t| {:.4f}\t| {:.4f}\t| {:.4f}\t| {:.0f}m {:.0f}s     |"
                   .format(epoch + 1, train_loss, train_acc, val_loss, val_acc,
                           epoch_time // 60, epoch_time % 60))
 
@@ -200,6 +205,9 @@ class ClassificationTrainer:
 
         # load best model weights and save them
         self.model.load_state_dict(best_model_wts)
+
+        if not os.path.isdir(self.model_path):
+            os.makedirs(self.model_path)
 
         save_model(self.model_path, self.model_name, self.model, self.epochs, self.optimizer, self.criterion)
 
