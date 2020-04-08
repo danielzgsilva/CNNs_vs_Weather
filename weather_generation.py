@@ -29,9 +29,5 @@ def add_fog(im, D, tFactor, atmLight):
 
             # Set intensity of fog
             foggy[:, i, j] = t * foggy[:, i, j] + ((1 - t) * atmLight)
-
-    # Return foggy image
-    transform = transforms.Compose([
-        transforms.ToTensor()
-    ])
-    return transform(foggy).reshape(c, h, w)
+    
+    return torch.from_numpy(foggy)
