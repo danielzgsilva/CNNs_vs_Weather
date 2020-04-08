@@ -41,7 +41,7 @@ class TrainingOptions:
         self.parser.add_argument("--learning_rate",
                                  type=float,
                                  help="learning rate",
-                                 default=0.01)
+                                 default=0.001)
         self.parser.add_argument("--num_epochs",
                                  help="number of epochs",
                                  default=20)
