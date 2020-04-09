@@ -46,7 +46,7 @@ class ClassificationTrainer:
             self.model = resnet34(pretrained=True)
             set_requires_grad(self.model, False)
             self.model.fc = self.fc = nn.Linear(512, len(important_classes))
-            self.input_size = (224, 224)
+            #self.input_size = (224, 224)
 
         self.model.to(self.device)
 
@@ -162,7 +162,7 @@ class ClassificationTrainer:
 
         # Calculate epoch statistics
         loss = running_loss / self.datasets[phase].__len__()
-        acc = running_corrects / self.datasets[phase].__len__()
+        acc = running_corrects / (self.datasets[phase].__len__() * len(important_classes))
 
         return loss, acc
 
