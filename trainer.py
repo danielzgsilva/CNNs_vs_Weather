@@ -59,10 +59,10 @@ class ClassificationTrainer:
                 params_to_update.append(param)
                 print('Training param {}'.format(name))
 
-        self.optimizer = optim.Adam(params_to_update, lr=self.lr)
+        #self.optimizer = optim.Adam(params_to_update, lr=self.lr)
 
-        # self.optimizer = optim.SGD(self.model.parameters(), lr=self.lr, momentum=0.9, weight_decay=0.0005)
-        # self.scheduler = StepLR(self.optimizer, step_size=self.step, gamma=0.9)
+        self.optimizer = optim.SGD(params_to_update, lr=self.lr, momentum=0.9, weight_decay=0.0005)
+        self.scheduler = StepLR(self.optimizer, step_size=self.step, gamma=0.9)
 
         print('Training options:\n'
               '\tModel: {}\n\tInput size: {}\n\tBatch size: {}\n\tEpochs: {}\n\t'
@@ -159,6 +159,8 @@ class ClassificationTrainer:
             # Document statistics for the batch
             running_loss += loss.item() * images.size(0)
             running_corrects += torch.sum(preds == labels.data).item()
+        
+        self.scheduler.step()
 
         # Calculate epoch statistics
         loss = running_loss / self.datasets[phase].__len__()
