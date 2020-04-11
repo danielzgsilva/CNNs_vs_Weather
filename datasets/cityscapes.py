@@ -175,14 +175,11 @@ class Cityscapes(VisionDataset):
             targets.append(target)
 
         target = tuple(targets) if len(targets) > 1 else targets[0]
-
-        if self.transforms is not None:
-            image, target = self.transforms(image, target)
         
         # If applying a perturbation that needs a depth map to be generated, first load the image's depth map
         if self.perturbation is not None and self.perturbation != 'occlusion':
             # Load in disparity map and reshape it to match the images size post-transform
-            n, m = image.shape[1:]
+            n, m = image.size
             disparity = cv.resize(cv.imread(self.depth_maps[index], cv.IMREAD_UNCHANGED).astype(np.float32), (m, n))
             disparity[disparity > 0] = (disparity[disparity > 0] - 1) / 256
 
@@ -206,6 +203,9 @@ class Cityscapes(VisionDataset):
             image = add_snow(image, disparity, tFactor, atmLight)
         elif self.perturbation == 'occlusion':
             image = add_occlusion(image)
+
+        if self.transforms is not None:
+            image, target = self.transforms(image, target)
             
         return image, target
 
