@@ -40,8 +40,8 @@ class ClassificationTrainer:
         elif self.model_type == 'VGG':
             self.model = vgg16_bn(pretrained=True)
             set_requires_grad(self.model, False)
-            self.model.fc = self.fc = nn.Linear(4096, len(important_classes))
-
+            num_ftrs = self.model.classifier[6].in_features
+            self.model.classifier[6] = nn.Linear(num_ftrs, len(important_classes))
         else:
             self.model = resnet34(pretrained=True)
             set_requires_grad(self.model, False)
