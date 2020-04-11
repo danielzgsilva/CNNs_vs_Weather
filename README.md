@@ -1,9 +1,10 @@
 # CNNs vs Weather
 Examining the effects of natural perturbations such as rain, snow, fog and occlusions on the most popular CNN models
 
-### About
+## About
 This repo allows you to easily train and test a few of the most popular convolutional neural network architectures on the [Cityscapes](https://www.cityscapes-dataset.com/dataset-overview/) dataset, modified to simulate naturally ocurring weather conditions and other perturbations.
 
+## Usage
 ### Installation
 Install dependencies
 - PyTorch (https://pytorch.org/get-started/locally/)
@@ -45,7 +46,7 @@ To finetune a pretrained ResNet34 model:
 By default, model weights are saved in a 'models' directory as a tar ball with the --model_name you passed  
 ```~/path/to/CNNs_vs_Weather/models/resnet_test.tar```
 
-For a complete list of possible training parametes run:  
+For a complete list of possible training parameters run:  
 ```python train.py --help```
 
 ### Test
