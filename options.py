@@ -25,6 +25,19 @@ class TrainingOptions:
         self.parser.add_argument("--model_name",
                                  type=str,
                                  help="name of the model")
+        self.parser.add_argument('--pretrained',
+                                 default=True,
+                                 type=lambda x: (str(x).lower() == 'true'),
+                                 help="whether to load models pretrained on ImageNet or not")
+        self.parser.add_argument("--freeze",
+                                 type=lambda x: (str(x).lower() == 'true'),
+                                 help="whether to freeze feature extraction layers during training",
+                                 default=True)
+        self.parser.add_argument("--finetune",
+                                 type=lambda x: (str(x).lower() == 'true'),
+                                 help="If true, applies --freeze to the earlier layers in the network."
+                                      "If freeze is True, this allows you to only train the last few layers",
+                                 default=False)
         self.parser.add_argument("--height",
                                  type=int,
                                  help="input image height",

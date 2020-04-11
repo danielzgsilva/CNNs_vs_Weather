@@ -1,7 +1,6 @@
 import torch
 import os
 
-
 important_classes = ['road',
                      'sidewalk',
                      'parking',
@@ -65,6 +64,13 @@ def load_model(filepath):
 
     return model, optimizer, criterion, epoch, device
 
-def set_requires_grad(model, requires_grad):
-    for param in model.parameters():
-        param.requires_grad = requires_grad
+
+def set_requires_grad(model, requires_grad, finetune):
+    if finetune:
+        for name, param in model.named_parameters():
+            group = name.split('.')[0]
+            if group != 'layer4' and group != 'fc':
+                param.requires_grad = requires_grad
+    else:
+        for param in model.parameters():
+            param.requires_grad = requires_grad

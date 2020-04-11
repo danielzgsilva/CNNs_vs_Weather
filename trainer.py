@@ -12,6 +12,7 @@ from utils import save_model, set_requires_grad, important_classes, get_image_la
 import time
 import os
 
+
 class ClassificationTrainer:
     def __init__(self, args):
         self.opt = args
@@ -20,6 +21,9 @@ class ClassificationTrainer:
         self.model_path = self.opt.model_path
         self.model_name = self.opt.model_name
         self.model_type = self.opt.model_type
+        self.pretrained = self.opt.pretrained
+        self.freeze = self.opt.freeze
+        self.finetune = self.opt.finetune
 
         # Training parameters
         self.input_size = (self.opt.height, self.opt.width)
@@ -33,20 +37,19 @@ class ClassificationTrainer:
         assert self.model_type in ['inception', 'resnet', 'VGG']
 
         if self.model_type == 'inception':
-            self.model = inception_v3(pretrained=True, aux_logits=False)
-            set_requires_grad(self.model, False)
+            self.model = inception_v3(pretrained=self.pretrained, aux_logits=False)
+            set_requires_grad(self.model, not self.freeze, self.finetune)
             self.model.fc = self.fc = nn.Linear(2048, len(important_classes))
 
         elif self.model_type == 'VGG':
-            self.model = vgg16_bn(pretrained=True)
-            set_requires_grad(self.model, False)
+            self.model = vgg16_bn(pretrained=self.pretrained)
+            set_requires_grad(self.model, not self.freeze)
             num_ftrs = self.model.classifier[6].in_features
             self.model.classifier[6] = nn.Linear(num_ftrs, len(important_classes))
         else:
-            self.model = resnet34(pretrained=True)
-            set_requires_grad(self.model, False)
+            self.model = resnet34(pretrained=self.pretrained)
+            set_requires_grad(self.model, not self.freeze, self.finetune)
             self.model.fc = self.fc = nn.Linear(512, len(important_classes))
-            #self.input_size = (224, 224)
 
         self.model.to(self.device)
 
@@ -55,11 +58,11 @@ class ClassificationTrainer:
 
         params_to_update = []
         for name, param in self.model.named_parameters():
-            if param.requires_grad == True:
+            if param.requires_grad:
                 params_to_update.append(param)
                 print('Training param {}'.format(name))
 
-        #self.optimizer = optim.Adam(params_to_update, lr=self.lr)
+        # self.optimizer = optim.Adam(params_to_update, lr=self.lr)
 
         self.optimizer = optim.SGD(params_to_update, lr=self.lr, momentum=0.9, weight_decay=0.0005)
         self.scheduler = StepLR(self.optimizer, step_size=self.step, gamma=0.9)
@@ -159,7 +162,7 @@ class ClassificationTrainer:
             # Document statistics for the batch
             running_loss += loss.item() * images.size(0)
             running_corrects += torch.sum(preds == labels.data).item()
-        
+
         self.scheduler.step()
 
         # Calculate epoch statistics
