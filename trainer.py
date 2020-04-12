@@ -38,17 +38,32 @@ class ClassificationTrainer:
 
         if self.model_type == 'inception':
             self.model = inception_v3(pretrained=self.pretrained, aux_logits=False)
-            set_requires_grad(self.model, not self.freeze, self.finetune)
+            if not self.finetune:
+                set_requires_grad(self.model, requires_grad=(not self.freeze))
+            else:
+                layers_to_train = ['Mixed_7a', 'Mixed_7b', 'Mixed_7c',  'fc']
+                set_requires_grad(self.model, finetune=self.finetune, layers_to_train=layers_to_train)
             self.model.fc = self.fc = nn.Linear(2048, len(important_classes))
 
         elif self.model_type == 'VGG':
             self.model = vgg16_bn(pretrained=self.pretrained)
-            set_requires_grad(self.model, not self.freeze)
+            if not self.finetune:
+                set_requires_grad(self.model, requires_grad=(not self.freeze))
+            else:
+                layers_to_train = ['features34', 'features35', 'features37',
+                                   'features38', 'features40', 'features41',
+                                   'classifier']
+                set_requires_grad(self.model, finetune=self.finetune, layers_to_train=layers_to_train, vgg=True)
             num_ftrs = self.model.classifier[6].in_features
             self.model.classifier[6] = nn.Linear(num_ftrs, len(important_classes))
+
         else:
             self.model = resnet34(pretrained=self.pretrained)
-            set_requires_grad(self.model, not self.freeze, self.finetune)
+            if not self.finetune:
+                set_requires_grad(self.model, requires_grad=(not self.freeze))
+            else:
+                layers_to_train = ['layer4', 'fc']
+                set_requires_grad(self.model, finetune=self.finetune, layers_to_train=layers_to_train)
             self.model.fc = self.fc = nn.Linear(512, len(important_classes))
 
         self.model.to(self.device)

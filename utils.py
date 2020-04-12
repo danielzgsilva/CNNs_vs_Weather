@@ -65,12 +65,19 @@ def load_model(filepath):
     return model, optimizer, criterion, epoch, device
 
 
-def set_requires_grad(model, requires_grad, finetune):
+def set_requires_grad(model, requires_grad=False, finetune=False, layers_to_train=None, vgg=False):
     if finetune:
         for name, param in model.named_parameters():
-            group = name.split('.')[0]
-            if group != 'layer4' and group != 'fc':
-                param.requires_grad = requires_grad
+            if not vgg:
+                group = name.split('.')[0]
+                if group not in layers_to_train:
+                    param.requires_grad = requires_grad
+            else:
+                split = name.split('.')
+                group, num = split[0], split[1]
+                grp_and_num = group + num
+                if group not in layers_to_train and grp_and_num not in layers_to_train:
+                    param.requires_grad = requires_grad
     else:
         for param in model.parameters():
             param.requires_grad = requires_grad
