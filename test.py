@@ -4,7 +4,7 @@ from torchvision import transforms
 
 import os
 from options import TestingOptions
-from utils import load_model, get_image_labels
+from utils import load_model, get_image_labels, important_classes
 from datasets.cityscapes import Cityscapes
 
 options = TestingOptions()
@@ -34,7 +34,7 @@ class Tester:
                                               transforms.ToTensor()])
 
         # List of perturbations we'll test the model on
-        self.perturbations = ['none', 'fog']
+        self.perturbations = ['none', 'fog', 'rain', 'snow', 'occlusion']
 
         # Dataset and dataloader dictionaries indexed by the type of perturbation it applies to images
         self.datasets = {i: Cityscapes(self.data_path,
@@ -47,7 +47,7 @@ class Tester:
                          for i in self.perturbations}
 
         self.num_testing_files = self.datasets['none'].__len__()
-        print('--> Testing on {} test files\n'.format(self.num_testing_files))
+        print('--> Testing model {} on {} test files\n'.format(self.model_name, self.num_testing_files))
 
         # Creating PyTorch dataloaders
         self.dataloaders = {i: DataLoader(self.datasets[i], batch_size=self.batch_size, shuffle=True,
@@ -77,14 +77,14 @@ class Tester:
                     loss = self.criterion(outputs, labels)
 
                     # Gets the predictions of the outputs (highest value in the array)
-                    _, preds = torch.max(outputs, 1)
+                    preds = (torch.sigmoid(outputs) > 0.5).int()
 
                 # Document statistics for the batch
                 running_loss += loss.item() * images.size(0)
                 running_corrects += torch.sum(preds == labels.data).item()
 
             # Document statistics
-            acc = running_corrects / self.num_testing_files
+            acc = running_corrects / (self.num_testing_files * len(important_classes))
             loss = running_loss / self.num_testing_files
 
             # Print results

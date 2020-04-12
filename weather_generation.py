@@ -33,7 +33,7 @@ def add_fog(im, D, tFactor, atmLight):
     return Image.fromarray(foggy)
 
 
-def generate_random_lines(imshape, slant, drop_length):
+def create_drops(imshape, slant, drop_length):
     drops = []
     for i in range(1500):
         if slant < 0:
@@ -47,7 +47,7 @@ def generate_random_lines(imshape, slant, drop_length):
     return drops
 
 
-def add_rain(im, D, tFactor, atmLight):
+def add_rain(im, atmLight):
     """
     Adds synthetic rain to an image
     im : image to add synthetic rain, should be a PIL image
@@ -65,7 +65,7 @@ def add_rain(im, D, tFactor, atmLight):
     drop_width = 2
     drop_color = (200, 200, 200)
 
-    rain_drops = generate_random_lines(imshape, slant, drop_length)
+    rain_drops = create_drops(imshape, slant, drop_length)
 
     for rain_drop in rain_drops:
         rainy = cv.line(rainy, (rain_drop[0], rain_drop[1]), (rain_drop[0] + slant, rain_drop[1] + drop_length),
@@ -77,7 +77,7 @@ def add_rain(im, D, tFactor, atmLight):
     return Image.fromarray(rainy)
 
 
-def add_snow(im, D, tFactor, atmLight):
+def add_snow(im):
     """
     Adds synthetic snow to an image
     im : image to add synthetic snow, should be a PIL image

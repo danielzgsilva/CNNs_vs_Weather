@@ -38,6 +38,11 @@ class TrainingOptions:
                                  help="If true, applies --freeze to the earlier layers in the network."
                                       "If freeze is True, this allows you to only train the last few layers",
                                  default=False)
+        self.parser.add_argument("--perturbations",
+                                 type=lambda x: (str(x).lower() == 'true'),
+                                 help="If true, give each image an equal chance to be modified with "
+                                      "fog, rain, snow, or an occlusion during training",
+                                 default=False)
         self.parser.add_argument("--height",
                                  type=int,
                                  help="input image height",

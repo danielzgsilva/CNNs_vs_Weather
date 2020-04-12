@@ -14,7 +14,8 @@ from weather_generation import add_fog, add_rain, add_snow, add_occlusion
 
 # List of perturbations which we support the synthetic generation of
 # Each cityscapes torch dataset created can apply one of these perturbations
-available_perturbations = ['none', 'fog', 'rain', 'snow', 'occlusion']
+available_perturbations = ['none', 'fog', 'rain', 'snow', 'occlusion', 'random']
+
 
 class Cityscapes(VisionDataset):
     """`Cityscapes <http://www.cityscapes-dataset.com/>`_ Dataset.
@@ -92,7 +93,7 @@ class Cityscapes(VisionDataset):
         if perturbation != 'none':
             assert perturbation in available_perturbations
             self.perturbation = perturbation
-            
+
             # In order to apply a perurbation we'll need the depth maps of the images 
             self.depth_dir = os.path.join(self.root, 'disparity', split)
             self.depth_maps = []
@@ -154,6 +155,7 @@ class Cityscapes(VisionDataset):
                     depth_map = file_name.replace('leftImg8bit', 'disparity')
                     self.depth_maps.append(os.path.join(depth_dir, depth_map))
 
+
     def __getitem__(self, index):
         """
         Args:
@@ -175,11 +177,19 @@ class Cityscapes(VisionDataset):
             targets.append(target)
 
         target = tuple(targets) if len(targets) > 1 else targets[0]
-        
+
+        perturbation = self.perturbation
+        if perturbation == 'random':
+            perturbation = np.random.choice(available_perturbations)
+
         # If applying a perturbation that needs a depth map to be generated, first load the image's depth map
-        if self.perturbation is not None and self.perturbation != 'occlusion':
+        if perturbation == 'fog':
             # Load in disparity map and reshape it to match the images size post-transform
             n, m = image.size
+
+            disparity = cv.imread(self.depth_maps[index], cv.IMREAD_UNCHANGED)
+            assert disparity is not None
+
             disparity = cv.resize(cv.imread(self.depth_maps[index], cv.IMREAD_UNCHANGED).astype(np.float32), (m, n))
             disparity[disparity > 0] = (disparity[disparity > 0] - 1) / 256
 
@@ -189,24 +199,25 @@ class Cityscapes(VisionDataset):
 
             # Smoothen depth map some
             disparity = cv.medianBlur(disparity, 5)
-            
-            # Choose random perturbation parameters
-            tFactor = np.random.choice(np.arange(0.06, 0.13, 0.02))
-            atmLight = np.random.choice(np.arange(0.6, 1.1, 0.1))
-            
+
+        # Choose random perturbation parameters
+        tFactor = np.random.choice(np.arange(0.06, 0.13, 0.02))
+        atmLight = np.random.choice(np.arange(0.6, 1.1, 0.1))
+
         # Add chosen perturbation to the image
-        if self.perturbation == 'fog':
-            image = add_fog(image, disparity, tFactor, atmLight)
-        elif self.perturbation == 'rain':
-            image = add_rain(image, disparity, tFactor, atmLight)
-        elif self.perturbation == 'snow':
-            image = add_snow(image, disparity, tFactor, atmLight)
-        elif self.perturbation == 'occlusion':
+        if perturbation == 'fog':
+            if disparity is not None:
+                image = add_fog(image, disparity, tFactor, atmLight)
+        elif perturbation == 'rain':
+            image = add_rain(image, atmLight)
+        elif perturbation == 'snow':
+            image = add_snow(image)
+        elif perturbation == 'occlusion':
             image = add_occlusion(image)
 
         if self.transforms is not None:
             image, target = self.transforms(image, target)
-            
+
         return image, target
 
     def __len__(self):

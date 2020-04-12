@@ -4,10 +4,10 @@ from torch.utils.data import DataLoader, ConcatDataset
 from torch import optim
 from torch.optim.lr_scheduler import StepLR
 from torchvision import transforms
-from torchvision.datasets import Cityscapes
 from torchvision.models import inception_v3, resnet34, vgg16_bn
 
 from utils import save_model, set_requires_grad, important_classes, get_image_labels
+from datasets.cityscapes import Cityscapes
 
 import time
 import os
@@ -24,6 +24,7 @@ class ClassificationTrainer:
         self.pretrained = self.opt.pretrained
         self.freeze = self.opt.freeze
         self.finetune = self.opt.finetune
+        self.train_on_perturbations = self.opt.perturbations
 
         # Training parameters
         self.input_size = (self.opt.height, self.opt.width)
@@ -41,7 +42,7 @@ class ClassificationTrainer:
             if not self.finetune:
                 set_requires_grad(self.model, requires_grad=(not self.freeze))
             else:
-                layers_to_train = ['Mixed_7a', 'Mixed_7b', 'Mixed_7c',  'fc']
+                layers_to_train = ['Mixed_7a', 'Mixed_7b', 'Mixed_7c', 'fc']
                 set_requires_grad(self.model, finetune=self.finetune, layers_to_train=layers_to_train)
             self.model.fc = self.fc = nn.Linear(2048, len(important_classes))
 
@@ -83,9 +84,10 @@ class ClassificationTrainer:
         self.scheduler = StepLR(self.optimizer, step_size=self.step, gamma=0.9)
 
         print('Training options:\n'
-              '\tModel: {}\n\tInput size: {}\n\tBatch size: {}\n\tEpochs: {}\n\t'
-              'Learning rate: {}\n\tStep Size: {}\n'.
-              format(self.model_type.capitalize(), self.input_size, self.batch_size, self.epochs, self.lr, self.step))
+              '\tModel: {}\n\Pretrained: {}\n\tInput size: {}\n\tBatch size: {}\n'
+              '\tEpochs: {}\n\t''Learning rate: {}\n\tStep Size: {}\n'.
+              format(self.model_type.capitalize(), self.pretrained, self.input_size, self.batch_size, self.epochs,
+                     self.lr, self.step))
 
         # Data transformations to be used during loading of images
         self.data_transforms = {'train': transforms.Compose([transforms.Resize(self.input_size),
@@ -95,6 +97,10 @@ class ClassificationTrainer:
                                 'test': transforms.Compose([transforms.Resize(self.input_size),
                                                             transforms.ToTensor()])}
 
+        perturbation = 'none'
+        if self.train_on_perturbations:
+            perturbation = 'random'
+
         # Creating PyTorch datasets
         self.datasets = dict()
         train_dataset = Cityscapes(self.data_path,
@@ -102,14 +108,16 @@ class ClassificationTrainer:
                                    mode='fine',
                                    target_type=["polygon"],
                                    transform=self.data_transforms['train'],
-                                   target_transform=get_image_labels)
+                                   target_transform=get_image_labels,
+                                   perturbation=perturbation)
 
         trainextra_dataset = Cityscapes(self.data_path,
                                         split='train_extra',
                                         mode='coarse',
                                         target_type=["polygon"],
                                         transform=self.data_transforms['train'],
-                                        target_transform=get_image_labels)
+                                        target_transform=get_image_labels,
+                                        perturbation=perturbation)
 
         self.datasets['train'] = ConcatDataset([train_dataset, trainextra_dataset])
 
