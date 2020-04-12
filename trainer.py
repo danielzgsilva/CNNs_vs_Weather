@@ -43,7 +43,7 @@ class ClassificationTrainer:
 
         elif self.model_type == 'VGG':
             self.model = vgg16_bn(pretrained=self.pretrained)
-            set_requires_grad(self.model, not self.freeze)
+            set_requires_grad(self.model, not self.freeze, self.finetune)
             num_ftrs = self.model.classifier[6].in_features
             self.model.classifier[6] = nn.Linear(num_ftrs, len(important_classes))
         else:
