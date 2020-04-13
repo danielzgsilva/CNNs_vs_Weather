@@ -1,6 +1,8 @@
 # CNNs vs Weather
 Examining the effects of natural perturbations such as rain, snow, fog and occlusions on the most popular CNN models
 
+[Example](ModelTesting.png)
+
 ## About
 This repo allows you to easily train and test a few of the most popular convolutional neural network architectures on the [Cityscapes](https://www.cityscapes-dataset.com/dataset-overview/) dataset, modified to simulate naturally ocurring weather conditions and other perturbations.
 
