@@ -1,7 +1,7 @@
 # CNNs vs Weather
 Examining the effects of simulated perturbations such as rain, snow, fog and occlusions on the most popular CNN models
 
-<p align="center">A few examples!<br>
+<p align="center">A few examples! Rows: perturbation or weather condition, Columns: unique images<br>
   <img src='ModelTesting.png' alt='A few examples' />
 </p>
 
